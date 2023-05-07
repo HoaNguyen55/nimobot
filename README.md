@@ -1,4 +1,4 @@
-# nimobot
+# NimoTV bot
 
 ## 1. Description
 
@@ -6,7 +6,11 @@ I would like to show you a bot which is used in NimoTV website to help users ent
 
 ## 2. How to use
 
-It is very simple, on your terminal, use command: python3 nimobot.py -h
+It is very simple.
+
+**Step 1**: Install the requirements by using command: pip3 install -r requirment.txt
+
+**Step 2**: Open a terminal and use this command to show parameters that can be used: `python3 nimobot.py -h`
 
 `usage: nimobot.py [-h] [--waitfirsttime WAITFIRSTTIME] [--waitlongtime WAITLONGTIME] [--waitshorttime WAITSHORTTIME] [--inittimeset INITTIMESET]\
                   [--opentabnum OPENTABNUM] [--username USERNAME] [--password PASSWORD] [--headless HEADLESS] [--nonlogin NONLOGIN] [--url URL]\

@@ -16,32 +16,28 @@ import argparse
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('--waitfirsttime' , type=int, default=10                          , help='Wait first time')
-parser.add_argument('--waitlongtime'  , type=int, default=10                          , help='Wait long time')
-parser.add_argument('--waitshorttime' , type=int, default=5                           , help='Wait short time')
-parser.add_argument('--inittimeset'   , type=str, default='true'                      , help='Force initialize time')
-parser.add_argument('--opentabnum'    , type=int, default=10                          , help='Number of tabs to open')
-parser.add_argument('--username'      , type=str, default='0944081366'                , help='User input')
-parser.add_argument('--password'      , type=str, default='Hoanlm@2310199x'           , help='Password input')
-parser.add_argument('--headless'      , type=str, default='true'                      , help='Run Chrome in headless mode')
-parser.add_argument('--nonlogin'      , type=str, default='false'                     , help='Choose NOT to login account')
-parser.add_argument('--url'           , type=str, default='https://www.nimo.tv/lives' , help='Website URL')
-parser.add_argument('--urlonlyset'    , type=str, default='false'                     , help='Use specific URL')
-parser.add_argument('--specificurl'   , type=str, default=''                          , help='Specific URL')
+parser.add_argument('--waitlongtime'    , type=int, default=10                          , help='Wait long time. Default is 10')
+parser.add_argument('--waitshorttime'   , type=int, default=5                           , help='Wait short time. Default is 5')
+parser.add_argument('--opentabnum'      , type=int, default=10                          , help='Number of tabs to open. Default is 10')
+parser.add_argument('--username'        , type=str, required='true'                     , help='User input. This parameter is required')
+parser.add_argument('--password'        , type=str, required='true'                     , help='Password input. This parameter is required')
+parser.add_argument('--headless'        , type=str, default='true'                      , help='Run Chrome in headless mode. Default is true')
+parser.add_argument('--nonlogin'        , type=str, default='false'                     , help='Choose NOT to login account. Default is false')
+parser.add_argument('--url'             , type=str, default='https://www.nimo.tv/lives' , help='Website URL. Default is https://www.nimo.tv/lives')
+parser.add_argument('--urlonlyset'      , type=str, default='false'                     , help='Use specific URL. Default is false')
+parser.add_argument('--specificurl'     , type=str, default=''                          , help='Specific URL. Default is empty string')
 args = parser.parse_args()
 
 
 class NimoTVBot:
     def __init__(self, username, password, open_tab_num, 
-                init_time_set, wait_short_time, wait_long_time, wait_first_time,
+                wait_short_time, wait_long_time,
                 url, headless, nonlogin, urlonlyset, specificurl):
         self.username           = username
         self.password           = password
         self.open_tab_num       = open_tab_num
         self.wait_short_time    = wait_short_time
         self.wait_long_time     = wait_long_time
-        self.wait_first_time    = wait_first_time
-        self.init_time_set      = init_time_set
         self.url                = url
         self.headless           = headless
         self.nonlogin           = nonlogin
@@ -82,17 +78,27 @@ class NimoTVBot:
         temp_name_list = []
         random.seed(int(time.time()))
         
-        if self.init_time_set.lower() == 'true':
-            time.sleep(self.wait_first_time)
-            self.init_time_set = 'false'
-        else:
-            time.sleep(self.wait_long_time)
+        time.sleep(self.wait_long_time)
         i = 0
+        
+        SCROLL_PAUSE_TIME = 0.5
+
+        # Get scroll height
+        last_height = self.driver.execute_script("return document.body.scrollHeight")
+        
         while True:
+            # Scroll down to bottom
             self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            time.sleep(1)
-            i += 1
-            if (i == self.wait_long_time): break
+        
+            # Wait to load page
+            time.sleep(SCROLL_PAUSE_TIME)
+        
+            # Calculate new scroll height and compare with last scroll height
+            new_height = self.driver.execute_script("return document.body.scrollHeight")
+            if new_height == last_height:
+                break
+            last_height = new_height
+
         html = self.driver.page_source
         soup = BeautifulSoup(html, 'html.parser')
         with open("file_soup.html", 'w', encoding="utf-8") as f:
@@ -191,10 +197,8 @@ if __name__ == '__main__':
     bot = NimoTVBot(args.username, 
                     args.password, 
                     args.opentabnum,
-                    args.inittimeset,
                     args.waitshorttime, 
                     args.waitlongtime, 
-                    args.waitfirsttime,
                     args.url,
                     args.headless,
                     args.nonlogin,

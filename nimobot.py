@@ -26,13 +26,15 @@ parser.add_argument('--nonlogin', type=str, default='false', help='Choose NOT to
 parser.add_argument('--url', type=str, default='https://www.nimo.tv/lives', help='Website URL. Default is https://www.nimo.tv/lives')
 parser.add_argument('--urlonlyset', type=str, default='false', help='Use specific URL. Default is false')
 parser.add_argument('--specificurl', type=str, default='', help='Specific URL. Default is empty string')
+parser.add_argument('--egg', type=str, default='false', help='Collect eggs. Default is false')
+
 args = parser.parse_args()
 
 
 class NimoTVBot:
     def __init__(self, username, password, open_tab_num,
                  wait_short_time, wait_long_time,
-                 url, headless, nonlogin, urlonlyset, specificurl):
+                 url, headless, nonlogin, urlonlyset, specificurl, egg):
         self.username = username
         self.password = password
         self.open_tab_num = open_tab_num
@@ -43,6 +45,7 @@ class NimoTVBot:
         self.nonlogin = nonlogin
         self.urlonlyset = urlonlyset
         self.specificurl = specificurl
+        self.egg = egg
         self.driver = None
         self.main_window = None
 
@@ -142,32 +145,34 @@ class NimoTVBot:
             windows = self.driver.window_handles
             idx = 0 if len(windows) == 0 else len(windows) - 1
             self.driver.switch_to.window(windows[idx])
-            # Lấy nội dung HTML của trang web
-            html_per_tab = self.driver.page_source
-            soup_per_tab = BeautifulSoup(html_per_tab, 'html.parser')
 
-            with open("file_soup_per_tab.html", 'w', encoding="utf-8") as f:
-                f.write(soup_per_tab.prettify())
+            if self.egg.lower() == 'true':
+                # Lấy nội dung HTML của trang web
+                html_per_tab = self.driver.page_source
+                soup_per_tab = BeautifulSoup(html_per_tab, 'html.parser')
 
-            egg_collect = soup_per_tab.find_all('div', class_='nimo-box-gift__box n-fx-col n-fx-sc')
+                with open("file_soup_per_tab.html", 'w', encoding="utf-8") as f:
+                    f.write(soup_per_tab.prettify())
 
-            if len(egg_collect) > 0:
-                egg_gift = egg_collect[0].find('nimo-box-gift__box__cd n-as-fs12')
-                if egg_gift != 0:
-                    print("====== Yehhh - Room này có trứng nè ======")
-                    while True:
-                        if not element:
-                            value = self.driver.find_element(By.XPATH, '//sup[@class="nimo-scroll-number nimo-badge-count"]')
-                            if not value:
+                egg_collect = soup_per_tab.find_all('div', class_='nimo-box-gift__box n-fx-col n-fx-sc')
+
+                if len(egg_collect) > 0:
+                    egg_gift = egg_collect[0].find('nimo-box-gift__box__cd n-as-fs12')
+                    if egg_gift != 0:
+                        print("====== Yehhh - Room này có trứng nè ======")
+                        while True:
+                            if not element:
+                                value = self.driver.find_element(By.XPATH, '//sup[@class="nimo-scroll-number nimo-badge-count"]')
+                                if not value:
+                                    break
+                                print(f"Remaining eggs: {value.text}")  # Output: 3
+
+                            if int(value.text) >= 1:
+                                # Click on the image element using Selenium
+                                egg_collect.click()
+                                time.sleep(0.3)
+                            else:
                                 break
-                            print(f"Remaining eggs: {value.text}")  # Output: 3
-
-                        if int(value.text) >= 1:
-                            # Click on the image element using Selenium
-                            egg_collect.click()
-                            time.sleep(0.3)
-                        else:
-                            break
 
             if len(windows) > self.open_tab_num:
                 for window in windows:
@@ -202,7 +207,8 @@ if __name__ == '__main__':
                     args.headless,
                     args.nonlogin,
                     args.urlonlyset,
-                    args.specificurl)
+                    args.specificurl,
+                    args.egg)
 
     try:
         bot.setup_driver()
